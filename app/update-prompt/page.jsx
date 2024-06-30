@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
 import Form from "@components/Form";
 
-const UpdatePrompt = () => {
+const UpdatePromptPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const promptId = searchParams.get("id");
@@ -15,13 +14,18 @@ const UpdatePrompt = () => {
 
   useEffect(() => {
     const getPromptDetails = async () => {
+      if (!promptId) {
+        console.error("Missing Prompt ID");
+        return;
+      }
+
       try {
         const response = await fetch(`/api/prompt/${promptId}`);
         if (!response.ok) {
-          throw new Error(`Failed to fetch prompt details: ${response.statusText}`);
+          throw new Error(`Error fetching prompt details: ${response.statusText}`);
         }
-        const data = await response.json();
 
+        const data = await response.json();
         setPost({
           prompt: data.prompt,
           tag: data.tag,
@@ -74,9 +78,15 @@ const UpdatePrompt = () => {
       post={post}
       setPost={setPost}
       submitting={submitting}
-      handleSubmit={updatePrompt} // Corrected function name
+      handleSubmit={updatePrompt}
     />
   );
 };
 
-export default UpdatePrompt;
+const Page = () => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <UpdatePromptPage />
+  </Suspense>
+);
+
+export default Page;
